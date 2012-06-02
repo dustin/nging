@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"syscall"
+	"time"
 )
 
 type routeHandler func(w http.ResponseWriter, req *http.Request)
@@ -39,7 +40,7 @@ var routingTable []routingEntry = []routingEntry{
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/therm/"),
 		proxyHandler("/", "http://menudo:7777/therm/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/house/"),
-		proxyHandler("/house", "http://menudo.west.spy.net:7777/")},
+		proxyHandler("/", "http://menudo.west.spy.net:7777/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/gitmirror/"),
 		proxyHandler("/gitmirror/", "http://menudo:8124/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/eve/"),
@@ -71,11 +72,21 @@ func findHandler(host, path string) routingEntry {
 		fileHandler("/Users/dustin/Sites")}
 }
 
-func handler(w http.ResponseWriter, req *http.Request) {
+type myHandler struct {
+	ch chan loggable
+}
+
+func (h *myHandler) ServeHTTP(ow http.ResponseWriter, req *http.Request) {
+	writer := &logWriter{ow, 0, 0}
+
+	defer func() {
+		h.ch <- loggable{time.Now(), writer, req}
+	}()
+
 	defer req.Body.Close()
 	route := findHandler(req.Host, req.URL.Path)
-	log.Printf("Handling %v:%v", req.Method, req.URL.Path)
-	route.Handler(w, req)
+	// log.Printf("Handling %v:%v", req.Method, req.URL.Path)
+	route.Handler(writer, req)
 }
 
 func dropPrivs(uid, gid int, descriptors uint64) {
@@ -96,6 +107,7 @@ func dropPrivs(uid, gid int, descriptors uint64) {
 
 func main() {
 	addr := flag.String("addr", ":4984", "Address to bind to")
+	logfile := flag.String("log", "access.log", "Access log path.")
 	descriptors := flag.Uint64("descriptors", 256, "Descriptors to allow")
 	uid := flag.Int("uid", -1, "UID to become.")
 	gid := flag.Int("gid", -1, "GID to become.")
@@ -110,9 +122,12 @@ func main() {
 		dropPrivs(*uid, *gid, *descriptors)
 	}
 
+	ch := make(chan loggable, 10000)
+	go commonLog(*logfile, ch)
+
 	s := &http.Server{
 		Addr:    *addr,
-		Handler: http.HandlerFunc(handler),
+		Handler: &myHandler{ch},
 	}
 	log.Printf("Listening to web requests on %s", *addr)
 	log.Fatal(s.Serve(l))

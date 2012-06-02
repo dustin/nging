@@ -83,7 +83,6 @@ func proxyHandler(prefix, dest string) routeHandler {
 		} else {
 			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
 		}
-		log.Printf("Going to %v in target %v", req.URL, target)
 	}
 	proxy := httputil.ReverseProxy{Director: director}
 
