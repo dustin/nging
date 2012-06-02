@@ -66,18 +66,6 @@ func fileHandler(root string) routeHandler {
 	}
 }
 
-func singleJoiningSlash(a, b string) string {
-	aslash := strings.HasSuffix(a, "/")
-	bslash := strings.HasPrefix(b, "/")
-	switch {
-	case aslash && bslash:
-		return a + b[1:]
-	case !aslash && !bslash:
-		return a + "/" + b
-	}
-	return a + b
-}
-
 func proxyHandler(prefix, dest string) routeHandler {
 	target, err := url.Parse(dest)
 	if err != nil {
@@ -90,7 +78,6 @@ func proxyHandler(prefix, dest string) routeHandler {
 		req.URL.Scheme = target.Scheme
 		req.URL.Host = target.Host
 		req.URL.Path = req.URL.Path[len(prefix)-1:]
-		// req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
 		if targetQuery == "" || req.URL.RawQuery == "" {
 			req.URL.RawQuery = targetQuery + req.URL.RawQuery
 		} else {
