@@ -27,9 +27,9 @@ func exists(path string) bool {
 	return err == nil
 }
 
-func fileHandler(root string) routeHandler {
+func fileHandler(prefix, root string) routeHandler {
 	return func(w http.ResponseWriter, req *http.Request) {
-		upath := req.URL.Path
+		upath := req.URL.Path[len(prefix)-1:]
 		if !strings.HasPrefix(upath, "/") {
 			upath = "/" + upath
 			req.URL.Path = upath

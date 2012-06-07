@@ -23,19 +23,19 @@ var emptyRegex = regexp.MustCompile("")
 var routingTable []routingEntry = []routingEntry{
 
 	routingEntry{"install.west.spy.net", emptyRegex,
-		fileHandler("/data/web/purple-virts/install")},
+		fileHandler("/", "/data/web/purple-virts/install")},
 
 	routingEntry{"media.west.spy.net", emptyRegex,
-		fileHandler("/data/web/purple-virts/media")},
+		fileHandler("/", "/data/web/purple-virts/media")},
 
 	routingEntry{"www.musicrivals.org", emptyRegex,
-		fileHandler("/data/web/purple-virts/www.musicrivals.org")},
+		fileHandler("/", "/data/web/purple-virts/www.musicrivals.org")},
 
 	routingEntry{"www.rockstarprogrammer.org",
 		regexp.MustCompile("^/favicon.ico$"),
-		fileHandler("/data/web/purple-virts/rsp-static/media/favicon.ico")},
+		fileHandler("/", "/data/web/purple-virts/rsp-static/media/favicon.ico")},
 	routingEntry{"www.rockstarprogrammer.org", emptyRegex,
-		fileHandler("/data/web/purple-virts/rsp-static")},
+		fileHandler("/", "/data/web/purple-virts/rsp-static")},
 
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/therm/"),
 		proxyHandler("/", "http://menudo:7777/therm/")},
@@ -53,9 +53,11 @@ var routingTable []routingEntry = []routingEntry{
 		proxyHandler("/pivotal", "http://localhost:8888/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/s3sign/"),
 		proxyHandler("/s3sign/", "http://eve:8123/")},
+	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/nging\\.git/"),
+		fileHandler("/nging.git/", "/home/dustin/go/src/misc/nging/.git/")},
 
 	routingEntry{"", emptyRegex,
-		fileHandler("/data/web/purple-virts/bleu/")},
+		fileHandler("/", "/data/web/purple-virts/bleu/")},
 }
 
 func findHandler(host, path string) routingEntry {
@@ -69,7 +71,7 @@ func findHandler(host, path string) routingEntry {
 	}
 	log.Printf("Using default handler for %v %v", host, path)
 	return routingEntry{"DEFAULT", nil,
-		fileHandler("/Users/dustin/Sites")}
+		fileHandler("/", "/Users/dustin/Sites")}
 }
 
 type myHandler struct {
