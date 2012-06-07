@@ -13,7 +13,8 @@ import (
 func serveSSI(w http.ResponseWriter, req *http.Request, root, path string) {
 	data, err := processSSI(root, path)
 	if err != nil {
-		http.NotFound(w, req)
+		http.Error(w, "500 Internal Server Error",
+			http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-type", "text/html")
@@ -27,7 +28,7 @@ func exists(path string) bool {
 	return err == nil
 }
 
-func fileHandler(prefix, root string) routeHandler {
+func dirHandler(prefix, root string, showIndex bool) routeHandler {
 	return func(w http.ResponseWriter, req *http.Request) {
 		upath := req.URL.Path[len(prefix)-1:]
 		if !strings.HasPrefix(upath, "/") {
@@ -60,10 +61,26 @@ func fileHandler(prefix, root string) routeHandler {
 				serveSSI(w, req, root, ssiindex)
 				return
 			}
+
+			regularIndex := filepath.Join(finalpath, "index.html")
+			if exists(regularIndex) {
+				http.ServeFile(w, req, finalpath)
+				return
+			} else {
+				if !showIndex {
+					http.Error(w, "403 Forbidden",
+						http.StatusForbidden)
+					return
+				}
+			}
 		}
 
 		http.ServeFile(w, req, finalpath)
 	}
+}
+
+func fileHandler(prefix, root string) routeHandler {
+	return dirHandler(prefix, root, false)
 }
 
 func proxyHandler(prefix, dest string) routeHandler {
