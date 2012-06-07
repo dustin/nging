@@ -40,7 +40,7 @@ var routingTable []routingEntry = []routingEntry{
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/therm/"),
 		proxyHandler("/", "http://menudo:7777/therm/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/house/"),
-		proxyHandler("/", "http://menudo.west.spy.net:7777/")},
+		proxyHandler("/therm/", "http://menudo.west.spy.net:7777/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/gitmirror/"),
 		proxyHandler("/gitmirror/", "http://menudo:8124/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/eve/"),
