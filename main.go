@@ -53,6 +53,10 @@ var routingTable []routingEntry = []routingEntry{
 		proxyHandler("/pivotal", "http://localhost:8888/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/s3sign/"),
 		proxyHandler("/s3sign/", "http://eve:8123/")},
+	routingEntry{"bleu.west.spy.net",
+		regexp.MustCompile("^/~dustin/repo/"),
+		dirHandler("/~dustin/", "/data/web/purple-root/~dustin/",
+			true)},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/nging\\.git/"),
 		fileHandler("/nging.git/", "/home/dustin/go/src/misc/nging/.git/")},
 
