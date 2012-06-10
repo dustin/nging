@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 )
@@ -32,9 +33,10 @@ func (lw *logWriter) WriteHeader(code int) {
 }
 
 type loggable struct {
-	ts  time.Time
-	lw  *logWriter
-	req *http.Request
+	ts   time.Time
+	lw   *logWriter
+	req  *http.Request
+	ustr string
 }
 
 func commonLog(outpath string, ch chan loggable) {
@@ -61,9 +63,15 @@ func commonLog(outpath string, ch chan loggable) {
 			h = l.req.RemoteAddr
 		}
 
+		url, err := url.Parse(l.ustr)
+		if err != nil {
+			log.Printf("Couldn't parse url %v: %v", l.ustr, err)
+			url = l.req.URL
+		}
+
 		fmt.Fprintf(logfile,
 			`%s - - %s "%s %s %s" %d %d "-" "%s" %s`+"\n",
-			h, ts, l.req.Method, l.req.URL.Path,
+			h, ts, l.req.Method, url.Path,
 			l.req.Proto, l.lw.status, l.lw.written,
 			l.req.Header.Get("User-Agent"), l.req.Host)
 

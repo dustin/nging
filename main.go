@@ -85,9 +85,9 @@ type myHandler struct {
 func (h *myHandler) ServeHTTP(ow http.ResponseWriter, req *http.Request) {
 	writer := &logWriter{ow, 0, 0}
 
-	defer func() {
-		h.ch <- loggable{time.Now(), writer, req}
-	}()
+	defer func(orig string) {
+		h.ch <- loggable{time.Now(), writer, req, orig}
+	}(req.URL.Path)
 
 	defer req.Body.Close()
 	route := findHandler(req.Host, req.URL.Path)
