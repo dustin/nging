@@ -132,8 +132,9 @@ func main() {
 	go commonLog(*logfile, ch)
 
 	s := &http.Server{
-		Addr:    *addr,
-		Handler: &myHandler{ch},
+		Addr:        *addr,
+		Handler:     &myHandler{ch},
+		ReadTimeout: 30 * time.Second,
 	}
 	log.Printf("Listening to web requests on %s", *addr)
 	log.Fatal(s.Serve(l))
