@@ -61,7 +61,7 @@ func serveSSI(w http.ResponseWriter, req *http.Request, root, path string, fi os
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
 
-		n, err := io.Copy(gz, buf)
+		_, err := io.Copy(gz, buf)
 		if err != nil {
 			log.Printf("Error writing gzip things", err)
 		}
@@ -75,12 +75,33 @@ func exists(path string) (bool, os.FileInfo) {
 	return err == nil, fi
 }
 
+type gzWriter struct {
+	w http.ResponseWriter
+	g io.WriteCloser
+}
+
+func (g *gzWriter) Header() http.Header {
+	return g.w.Header()
+}
+
+func (g *gzWriter) Write(b []byte) (int, error) {
+	return g.g.Write(b)
+}
+
+func (g *gzWriter) WriteHeader(c int) {
+	g.w.WriteHeader(c)
+}
+
 func serveFile(w http.ResponseWriter, req *http.Request, path string) {
 	ctype := mime.TypeByExtension(filepath.Ext(path))
-	if strings.HasPrefix(ctype, "text/") {
-		// Do compression here.
+	if strings.HasPrefix(ctype, "text/") && canGzip(req) {
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := &gzWriter{w, gzip.NewWriter(w)}
+		defer gz.g.Close()
+		http.ServeFile(gz, req, path)
+	} else {
+		http.ServeFile(w, req, path)
 	}
-	http.ServeFile(w, req, path)
 }
 
 func dirHandler(prefix, root string, showIndex bool) routeHandler {
