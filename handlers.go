@@ -1,31 +1,86 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
+	"io"
 	"log"
+	"mime"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
-func serveSSI(w http.ResponseWriter, req *http.Request, root, path string) {
+// Stolen from net/http
+func checkLastModified(w http.ResponseWriter, r *http.Request, modtime time.Time) bool {
+	if modtime.IsZero() {
+		return false
+	}
+
+	// The Date-Modified header truncates sub-second precision, so
+	// use mtime < t+1s instead of mtime <= t to check for unmodified.
+	if t, err := time.Parse(http.TimeFormat, r.Header.Get("If-Modified-Since")); err == nil && modtime.Before(t.Add(1*time.Second)) {
+		w.WriteHeader(http.StatusNotModified)
+		return true
+	}
+	w.Header().Set("Last-Modified", modtime.UTC().Format(http.TimeFormat))
+	return false
+}
+
+func canGzip(req *http.Request) bool {
+	acceptable := req.Header.Get("accept-encoding")
+	return strings.Contains(acceptable, "gzip")
+}
+
+func serveSSI(w http.ResponseWriter, req *http.Request, root, path string, fi os.FileInfo) {
 	data, err := processSSI(root, path)
 	if err != nil {
 		http.Error(w, "500 Internal Server Error",
 			http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-type", "text/html")
-	w.WriteHeader(200)
-	w.Write(data)
 
+	if checkLastModified(w, req, fi.ModTime()) {
+		return
+	}
+
+	z := canGzip(req)
+
+	w.Header().Set("Content-type", "text/html")
+	if z {
+		w.Header().Set("Content-Encoding", "gzip")
+	}
+	w.WriteHeader(200)
+
+	if z {
+		buf := bytes.NewReader(data)
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+
+		n, err := io.Copy(gz, buf)
+		if err != nil {
+			log.Printf("Error writing gzip things", err)
+		}
+	} else {
+		w.Write(data)
+	}
 }
 
-func exists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
+func exists(path string) (bool, os.FileInfo) {
+	fi, err := os.Stat(path)
+	return err == nil, fi
+}
+
+func serveFile(w http.ResponseWriter, req *http.Request, path string) {
+	ctype := mime.TypeByExtension(filepath.Ext(path))
+	if strings.HasPrefix(ctype, "text/") {
+		// Do compression here.
+	}
+	http.ServeFile(w, req, path)
 }
 
 func dirHandler(prefix, root string, showIndex bool) routeHandler {
@@ -38,14 +93,14 @@ func dirHandler(prefix, root string, showIndex bool) routeHandler {
 
 		finalpath := filepath.Join(root, upath)
 
-		if strings.HasSuffix(finalpath, ".shtml") {
-			serveSSI(w, req, root, finalpath)
-			return
-		}
-
 		fi, err := os.Stat(finalpath)
 		if err != nil {
 			http.NotFound(w, req)
+			return
+		}
+
+		if strings.HasSuffix(finalpath, ".shtml") {
+			serveSSI(w, req, root, finalpath, fi)
 			return
 		}
 
@@ -57,14 +112,14 @@ func dirHandler(prefix, root string, showIndex bool) routeHandler {
 			}
 
 			ssiindex := filepath.Join(finalpath, "index.shtml")
-			if exists(ssiindex) {
-				serveSSI(w, req, root, ssiindex)
+			if ok, st := exists(ssiindex); ok {
+				serveSSI(w, req, root, ssiindex, st)
 				return
 			}
 
 			regularIndex := filepath.Join(finalpath, "index.html")
-			if exists(regularIndex) {
-				http.ServeFile(w, req, finalpath)
+			if ok, _ := exists(regularIndex); ok {
+				serveFile(w, req, finalpath)
 				return
 			} else {
 				if !showIndex {
@@ -75,7 +130,7 @@ func dirHandler(prefix, root string, showIndex bool) routeHandler {
 			}
 		}
 
-		http.ServeFile(w, req, finalpath)
+		serveFile(w, req, finalpath)
 	}
 }
 
