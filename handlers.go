@@ -106,6 +106,7 @@ func serveFile(w http.ResponseWriter, req *http.Request, path string) {
 
 func dirHandler(prefix, root string, showIndex bool) routeHandler {
 	return func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Cache-Control", "max-age=3600")
 		upath := req.URL.Path[len(prefix)-1:]
 		if !strings.HasPrefix(upath, "/") {
 			upath = "/" + upath
