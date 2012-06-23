@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "expvar"
 	"flag"
 	"log"
 	"net"
@@ -60,8 +61,15 @@ var routingTable []routingEntry = []routingEntry{
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/nging\\.git/"),
 		fileHandler("/nging.git/", "/home/dustin/go/src/misc/nging/.git/")},
 
+	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/debug/vars"),
+		defaultServerHandler},
+
 	routingEntry{"", emptyRegex,
 		fileHandler("/", "/data/web/purple-virts/bleu/")},
+}
+
+func defaultServerHandler(w http.ResponseWriter, req *http.Request) {
+	http.DefaultServeMux.ServeHTTP(w, req)
 }
 
 func findHandler(host, path string) routingEntry {
