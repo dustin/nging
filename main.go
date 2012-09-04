@@ -66,6 +66,9 @@ var routingTable []routingEntry = []routingEntry{
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/debug/vars"),
 		defaultServerHandler},
 
+	routingEntry{"seriesly.west.spy.net", regexp.MustCompile("^/"),
+		proxyHandler("/", "http://z:3133/")},
+
 	routingEntry{"", emptyRegex,
 		fileHandler("/", "/data/web/purple-virts/bleu/")},
 }
