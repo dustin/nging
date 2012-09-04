@@ -160,7 +160,9 @@ func fileHandler(prefix, root string) routeHandler {
 	return dirHandler(prefix, root, false)
 }
 
-func proxyHandler(prefix, dest string) routeHandler {
+func restrictedProxyHandler(prefix, dest string,
+	methods []string) routeHandler {
+
 	target, err := url.Parse(dest)
 	if err != nil {
 		log.Panicf("Error setting up handler with dest=%v:  %v",
@@ -182,6 +184,21 @@ func proxyHandler(prefix, dest string) routeHandler {
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		req.Header.Set("Host", req.URL.Host)
-		proxy.ServeHTTP(w, req)
+		if len(methods) > 0 {
+			for _, m := range methods {
+				if m == req.Method {
+					proxy.ServeHTTP(w, req)
+					return
+				}
+			}
+			http.Error(w, "405 Method Not Allowed",
+				http.StatusMethodNotAllowed)
+		} else {
+			proxy.ServeHTTP(w, req)
+		}
 	}
+}
+
+func proxyHandler(prefix, dest string) routeHandler {
+	return restrictedProxyHandler(prefix, dest, []string{})
 }
