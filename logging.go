@@ -33,10 +33,11 @@ func (lw *logWriter) WriteHeader(code int) {
 }
 
 type loggable struct {
-	ts   time.Time
-	lw   *logWriter
-	req  *http.Request
-	ustr string
+	ts    time.Time
+	lw    *logWriter
+	req   *http.Request
+	ustr  string
+	query string
 }
 
 func commonLog(outpath string, ch chan loggable) {
@@ -69,9 +70,14 @@ func commonLog(outpath string, ch chan loggable) {
 			url = l.req.URL
 		}
 
+		pathPart := url.Path
+		if l.query != "" {
+			pathPart += "?" + l.query
+		}
+
 		fmt.Fprintf(logfile,
 			`%s - - %s "%s %s %s" %d %d "-" "%s" %s`+"\n",
-			h, ts, l.req.Method, url.Path,
+			h, ts, l.req.Method, pathPart,
 			l.req.Proto, l.lw.status, l.lw.written,
 			l.req.Header.Get("User-Agent"), l.req.Host)
 

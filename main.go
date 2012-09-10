@@ -99,9 +99,9 @@ type myHandler struct {
 func (h *myHandler) ServeHTTP(ow http.ResponseWriter, req *http.Request) {
 	writer := &logWriter{ow, 0, 0}
 
-	defer func(orig string) {
-		h.ch <- loggable{time.Now(), writer, req, orig}
-	}(req.URL.Path)
+	defer func(orig, q string) {
+		h.ch <- loggable{time.Now(), writer, req, orig, q}
+	}(req.URL.Path, req.URL.RawQuery)
 
 	defer req.Body.Close()
 	route := findHandler(req.Host, req.URL.Path)
