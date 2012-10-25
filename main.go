@@ -4,6 +4,7 @@ import (
 	_ "expvar"
 	"flag"
 	"log"
+	"log/syslog"
 	"net"
 	"net/http"
 	"regexp"
@@ -129,7 +130,17 @@ func main() {
 	descriptors := flag.Uint64("descriptors", 256, "Descriptors to allow")
 	uid := flag.Int("uid", -1, "UID to become.")
 	gid := flag.Int("gid", -1, "GID to become.")
+	useSyslog := flag.Bool("syslog", false, "Log to syslog")
 	flag.Parse()
+
+	if *useSyslog {
+		sl, err := syslog.New(syslog.LOG_INFO, "nging")
+		if err != nil {
+			log.Fatalf("Error initializing syslog")
+		}
+		log.SetOutput(sl)
+		log.SetFlags(0)
+	}
 
 	l, err := net.Listen("tcp", *addr)
 	if err != nil {
