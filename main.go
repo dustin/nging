@@ -50,8 +50,6 @@ var routingTable []routingEntry = []routingEntry{
 		proxyHandler("/", "http://eve:4984/mrtg/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/icons/"),
 		proxyHandler("/icons/", "http://192.168.1.95/icons/")},
-	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/pivotal/"),
-		proxyHandler("/pivotal/", "http://localhost:8888/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/s3sign/"),
 		proxyHandler("/s3sign/", "http://eve:8123/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/washer"),
