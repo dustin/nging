@@ -144,7 +144,7 @@ func main() {
 
 	l, err := net.Listen("tcp", *addr)
 	if err != nil {
-		log.Fatal("Failed to listen:  %v", err)
+		log.Fatalf("Failed to listen:  %v", err)
 	}
 
 	if *uid > -1 && *gid > -1 {

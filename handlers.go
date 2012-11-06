@@ -63,7 +63,7 @@ func serveSSI(w http.ResponseWriter, req *http.Request, root, path string, fi os
 
 		_, err := io.Copy(gz, buf)
 		if err != nil {
-			log.Printf("Error writing gzip things", err)
+			log.Printf("Error writing gzip things: %v", err)
 		}
 	} else {
 		w.Write(data)
