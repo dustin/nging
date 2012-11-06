@@ -48,13 +48,7 @@ func commonLog(outpath string, ch chan loggable) {
 	}
 	defer logfile.Close()
 
-	timer := make(chan bool)
-	go func() {
-		for {
-			time.Sleep(time.Second)
-			timer <- true
-		}
-	}()
+	timer := time.Tick(time.Second)
 
 	for l := range ch {
 		ts := l.ts.Format("[02/Jan/2006:15:04:05 -0700]")
