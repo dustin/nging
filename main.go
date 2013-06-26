@@ -60,7 +60,7 @@ var routingTable []routingEntry = []routingEntry{
 		dirHandler("/~dustin/", "/data/web/purple-root/~dustin/",
 			true)},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/nging\\.git/"),
-		fileHandler("/nging.git/", "/home/dustin/go/src/misc/nging/.git/")},
+		proxyHandler("/nging.git/", "http://cbfs:8484/nging/nging.git/")},
 
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/debug/vars"),
 		defaultServerHandler},
