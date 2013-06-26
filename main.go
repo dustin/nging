@@ -66,7 +66,7 @@ var routingTable []routingEntry = []routingEntry{
 		defaultServerHandler},
 
 	routingEntry{"seriesly.west.spy.net", regexp.MustCompile("^/"),
-		restrictedProxyHandler("/", "http://z:3133/",
+		restrictedProxyHandler("/", "http://bigdell.cbfs.west.spy.net:3133/",
 			[]string{"GET", "HEAD"})},
 
 	routingEntry{"", emptyRegex,
