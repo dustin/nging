@@ -102,7 +102,6 @@ func (h *myHandler) ServeHTTP(ow http.ResponseWriter, req *http.Request) {
 		h.ch <- loggable{time.Now(), writer, req, orig, q}
 	}(req.URL.Path, req.URL.RawQuery)
 
-	defer req.Body.Close()
 	route := findHandler(req.Host, req.URL.Path)
 	// log.Printf("Handling %v:%v", req.Method, req.URL.Path)
 	route.Handler(writer, req)
