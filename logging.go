@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -25,6 +26,12 @@ func (lw *logWriter) Write(b []byte) (int, error) {
 	r, e := lw.orig.Write(b)
 	lw.written += uint64(r)
 	return r, e
+}
+
+func (lw *logWriter) ReadFrom(r io.Reader) (int64, error) {
+	n, err := io.Copy(lw.orig, r)
+	lw.written += uint64(n)
+	return n, err
 }
 
 func (lw *logWriter) WriteHeader(code int) {
