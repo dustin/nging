@@ -173,7 +173,7 @@ func restrictedProxyHandler(prefix, dest string,
 	director := func(req *http.Request) {
 		req.URL.Scheme = target.Scheme
 		req.URL.Host = target.Host
-		if len(prefix) >= 0 && len(prefix) < len(req.URL.Path) {
+		if len(prefix) <= len(req.URL.Path) {
 			req.URL.Path = req.URL.Path[len(prefix):]
 		}
 		req.URL.Path = target.Path + req.URL.Path
