@@ -71,6 +71,9 @@ var routingTable []routingEntry = []routingEntry{
 		restrictedProxyHandler("/", "http://bigdell.cbfs.west.spy.net:3133/",
 			[]string{"GET", "HEAD"})},
 
+	routingEntry{"r.west.spy.net", emptyRegex,
+		proxyHandler("/", "http://menudo:8787/")},
+
 	routingEntry{"", emptyRegex,
 		fileHandler("/", "/data/web/purple-virts/bleu/")},
 }
