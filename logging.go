@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/syslog"
 	"net"
 	"net/http"
 	"net/url"
@@ -45,6 +46,37 @@ type loggable struct {
 	req   *http.Request
 	ustr  string
 	query string
+}
+
+func syslogLog(ch chan loggable) {
+	w, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "nging")
+	if err != nil {
+		log.Fatalf("Couldn't initialize logger.")
+	}
+	for l := range ch {
+		h, _, err := net.SplitHostPort(l.req.RemoteAddr)
+		if err != nil {
+			log.Printf("Couldn't split %v", l.req.RemoteAddr)
+			h = l.req.RemoteAddr
+		}
+
+		url, err := url.Parse(l.ustr)
+		if err != nil {
+			log.Printf("Couldn't parse url %v: %v", l.ustr, err)
+			url = l.req.URL
+		}
+
+		pathPart := url.Path
+		if l.query != "" {
+			pathPart += "?" + l.query
+		}
+
+		fmt.Fprintf(w,
+			`%s - - "%s %s %s" %d %d "-" "%s" %s`,
+			h, l.req.Method, pathPart,
+			l.req.Proto, l.lw.status, l.lw.written,
+			l.req.Header.Get("User-Agent"), l.req.Host)
+	}
 }
 
 func commonLog(outpath string, ch chan loggable) {

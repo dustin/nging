@@ -156,7 +156,11 @@ func main() {
 	}
 
 	ch := make(chan loggable, 10000)
-	go commonLog(*logfile, ch)
+	if *useSyslog {
+		go syslogLog(ch)
+	} else {
+		go commonLog(*logfile, ch)
+	}
 
 	s := &http.Server{
 		Addr:        *addr,
