@@ -205,3 +205,10 @@ func restrictedProxyHandler(prefix, dest string,
 func proxyHandler(prefix, dest string) routeHandler {
 	return restrictedProxyHandler(prefix, dest, []string{})
 }
+
+func errorHandler(status int, msg string) routeHandler {
+	return func(w http.ResponseWriter, req *http.Request) {
+		w.WriteHeader(status)
+		w.Write([]byte(msg))
+	}
+}
