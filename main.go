@@ -117,7 +117,7 @@ func (h *myHandler) ServeHTTP(ow http.ResponseWriter, req *http.Request) {
 	route.Handler(writer, req)
 }
 
-func dropPrivs(uid, gid int, descriptors uint64) {
+func dropPrivs(uid, gid int, descriptors int64) {
 	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE,
 		&syscall.Rlimit{descriptors, descriptors})
 	if err != nil {
@@ -136,7 +136,7 @@ func dropPrivs(uid, gid int, descriptors uint64) {
 func main() {
 	addr := flag.String("addr", ":4984", "Address to bind to")
 	logfile := flag.String("log", "access.log", "Access log path.")
-	descriptors := flag.Uint64("descriptors", 256, "Descriptors to allow")
+	descriptors := flag.Int64("descriptors", 256, "Descriptors to allow")
 	uid := flag.Int("uid", -1, "UID to become.")
 	gid := flag.Int("gid", -1, "GID to become.")
 	useSyslog := flag.Bool("syslog", false, "Log to syslog")
