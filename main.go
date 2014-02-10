@@ -44,7 +44,7 @@ var routingTable []routingEntry = []routingEntry{
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/house/"),
 		proxyHandler("/", "http://menudo.west.spy.net:7777/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/gitmirror/"),
-		proxyHandler("/gitmirror/", "http://menudo:8124/")},
+		proxyHandler("/gitmirror/", "http://z:8124/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/eve/"),
 		proxyHandler("/eve/", "http://eve:4984/")},
 	routingEntry{"bleu.west.spy.net", regexp.MustCompile("^/mrtg/"),
@@ -78,6 +78,9 @@ var routingTable []routingEntry = []routingEntry{
 
 	routingEntry{"r.west.spy.net", emptyRegex,
 		proxyHandler("/", "http://menudo:8787/")},
+
+	routingEntry{"noelani.sallings.org", emptyRegex,
+		redirectHandler("http://noelanisallings.com/")},
 
 	routingEntry{"", emptyRegex,
 		fileHandler("/", "/data/web/purple-virts/bleu/")},
@@ -117,7 +120,7 @@ func (h *myHandler) ServeHTTP(ow http.ResponseWriter, req *http.Request) {
 	route.Handler(writer, req)
 }
 
-func dropPrivs(uid, gid int, descriptors int64) {
+func dropPrivs(uid, gid int, descriptors uint64) {
 	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE,
 		&syscall.Rlimit{descriptors, descriptors})
 	if err != nil {
@@ -136,7 +139,7 @@ func dropPrivs(uid, gid int, descriptors int64) {
 func main() {
 	addr := flag.String("addr", ":4984", "Address to bind to")
 	logfile := flag.String("log", "access.log", "Access log path.")
-	descriptors := flag.Int64("descriptors", 256, "Descriptors to allow")
+	descriptors := flag.Uint64("descriptors", 256, "Descriptors to allow")
 	uid := flag.Int("uid", -1, "UID to become.")
 	gid := flag.Int("gid", -1, "GID to become.")
 	useSyslog := flag.Bool("syslog", false, "Log to syslog")

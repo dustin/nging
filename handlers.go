@@ -104,6 +104,12 @@ func serveFile(w http.ResponseWriter, req *http.Request, path string) {
 	}
 }
 
+func redirectHandler(dest string) routeHandler {
+	return func(w http.ResponseWriter, req *http.Request) {
+		http.Redirect(w, req, dest, http.StatusFound)
+	}
+}
+
 func dirHandler(prefix, root string, showIndex bool) routeHandler {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Cache-Control", "max-age=3600")
