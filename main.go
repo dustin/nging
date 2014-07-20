@@ -22,7 +22,7 @@ type routingEntry struct {
 
 var emptyRegex = regexp.MustCompile("")
 
-var routingTable []routingEntry = []routingEntry{
+var routingTable = []routingEntry{
 
 	routingEntry{"install.west.spy.net", emptyRegex,
 		fileHandler("/", "/data/web/purple-virts/install")},

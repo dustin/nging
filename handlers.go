@@ -149,12 +149,11 @@ func dirHandler(prefix, root string, showIndex bool) routeHandler {
 			if ok, _ := exists(regularIndex); ok {
 				serveFile(w, req, finalpath)
 				return
-			} else {
-				if !showIndex {
-					http.Error(w, "403 Forbidden",
-						http.StatusForbidden)
-					return
-				}
+			}
+			if !showIndex {
+				http.Error(w, "403 Forbidden",
+					http.StatusForbidden)
+				return
 			}
 		}
 
