@@ -122,7 +122,7 @@ func (h *myHandler) ServeHTTP(ow http.ResponseWriter, req *http.Request) {
 
 func dropPrivs(uid, gid int, descriptors uint64) {
 	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE,
-		&syscall.Rlimit{descriptors, descriptors})
+		&syscall.Rlimit{Cur: descriptors, Max: descriptors})
 	if err != nil {
 		log.Printf("Couldn't set file limits: %v", err)
 	}
