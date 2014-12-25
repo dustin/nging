@@ -115,7 +115,7 @@ func (h *myHandler) ServeHTTP(ow http.ResponseWriter, req *http.Request) {
 		h.ch <- loggable{time.Now(), writer, req, orig, q}
 	}(req.URL.Path, req.URL.RawQuery)
 
-	route := findHandler(req.Host, req.URL.Path).Handler(writer, req)
+	findHandler(req.Host, req.URL.Path).Handler(writer, req)
 }
 
 func dropPrivs(uid, gid int, descriptors uint64) {
