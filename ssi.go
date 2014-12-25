@@ -8,14 +8,15 @@ import (
 	"regexp"
 )
 
-var ssipat = regexp.MustCompile(`(<!--#include virtual=".*"-->)`)
-var pathpat = regexp.MustCompile(`<!--#include virtual="(.*)"-->`)
+var (
+	ssipat  = regexp.MustCompile(`(<!--#include virtual=".*"-->)`)
+	pathpat = regexp.MustCompile(`<!--#include virtual="(.*)"-->`)
+)
 
 func processSSI(root, path string) (rv []byte, err error) {
-	var src []byte
-	src, err = ioutil.ReadFile(path)
+	src, err := ioutil.ReadFile(path)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	out := ssipat.ReplaceAllFunc(src,
